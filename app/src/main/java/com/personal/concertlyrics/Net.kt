@@ -6,7 +6,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 object Http {
-    private const val USER_AGENT = "ConcertLyrics/0.1 (personal Android app)"
+    private const val USER_AGENT = "Singalong/1.0 (Android app)"
 
     class HttpException(val code: Int, message: String) : Exception(message)
 

@@ -223,7 +223,7 @@ fun HomeScreen(vm: MainVm, useDeviceLocation: () -> Unit) {
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item {
-            PageHeader("Concert Lyrics", subtitle = "Know every word at the show") {
+            PageHeader("Singalong", subtitle = "Know every word at the show") {
                 IconButton(onClick = { vm.screen = Screen.Settings }) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
