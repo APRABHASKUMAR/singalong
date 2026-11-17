@@ -95,11 +95,30 @@ fun App(vm: MainVm) {
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) vm.detectLocation() else vm.locationRefused()
     }
+    // Before Android's permission prompt, explain why and that saying no is fine (shown once).
+    var showLocationIntro by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         if (vm.location == null) {
-            if (Locator.hasPermission(ctx)) vm.detectLocation()
-            else askPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            when {
+                Locator.hasPermission(ctx) -> vm.detectLocation()
+                !vm.locationIntroSeen -> showLocationIntro = true
+                else -> vm.locationRefused()
+            }
         }
+    }
+    if (showLocationIntro) {
+        LocationIntroDialog(
+            onAllow = {
+                showLocationIntro = false
+                vm.markLocationIntroSeen()
+                askPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            },
+            onSkip = {
+                showLocationIntro = false
+                vm.markLocationIntroSeen()
+                vm.locationRefused()
+            },
+        )
     }
     val useDeviceLocation: () -> Unit = {
         vm.autoDetectLocation()
@@ -120,6 +139,35 @@ fun App(vm: MainVm) {
             }
         }
     }
+}
+
+@Composable
+fun LocationIntroDialog(onAllow: () -> Unit, onSkip: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onSkip,
+        icon = { Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        title = { Text("Find the show near you?") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Your approximate location helps the app work out which tour is coming to your city, " +
+                        "so the setlist matches the show you're going to.",
+                )
+                Text(
+                    "It's completely fine to say no. The app works without it: it will use the artist's " +
+                        "latest shows, and you can type your city or a tour name any time.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "Only your country is sent to setlist.fm. Your city is matched on the phone.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { Button(onClick = onAllow) { Text("Use my location") } },
+        dismissButton = { TextButton(onClick = onSkip) { Text("No thanks") } },
+    )
 }
 
 /** Big page title like the Expense Tracker: no toolbar, just a heading. */

@@ -79,6 +79,13 @@ class MainVm(app: Application) : AndroidViewModel(app) {
     /** True when the user refused location permission (or the phone couldn't find a location). */
     var locationUnavailable by mutableStateOf(false); private set
 
+    /** Whether we've already explained location and offered the permission once. */
+    val locationIntroSeen: Boolean get() = prefs.getBoolean("locationIntroSeen", false)
+
+    fun markLocationIntroSeen() {
+        prefs.edit().putBoolean("locationIntroSeen", true).apply()
+    }
+
     fun locationRefused() {
         if (!isManualLocation) locationUnavailable = true
     }
